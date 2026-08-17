@@ -1,58 +1,63 @@
 # splitpay
 
-Group expense splitter with instant MiniPay settle
+Group expense splitter with instant on-chain settle. Track shared expenses in a group, see who owes whom, and settle any balance in cUSD or USDC via MiniPay in one tap.
 
-A modern Celo blockchain application built with Next.js, TypeScript, and Turborepo.
+Built for Celo, ships as a MiniApp for Opera's [MiniPay](https://www.opera.com/products/minipay) wallet.
 
-## Getting Started
+## What it does
 
-1. Install dependencies:
-   ```bash
-   pnpm install
-   ```
+- **Create a group** for roommates, a trip, a dinner, a household — anyone with a Celo wallet.
+- **Add an expense** with amount, description, and who owes what share. Recorded on-chain.
+- **See running balances** for the group: who's up, who's down.
+- **Settle** any balance instantly by tapping "Settle" — pushes a cUSD/USDC transfer through the connected wallet (MiniPay-optimized) and clears the debt on-chain.
 
-2. Start the development server:
-   ```bash
-   pnpm dev
-   ```
+No intermediary. Balances live in a smart contract on Celo. Settlement is a real wallet-to-wallet stablecoin transfer.
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+## Status
 
-## Project Structure
+Pre-alpha. Scaffold in place, contract and UI in active development. Not yet deployed.
 
-This is a monorepo managed by Turborepo with the following structure:
+## Stack
 
-- `apps/web` - Next.js application with embedded UI components and utilities
-- `apps/hardhat` - Smart contract development environment
+- **Chain:** Celo (mainnet target, Sepolia for testing)
+- **Contracts:** Hardhat + Viem, Solidity 0.8.x
+- **Frontend:** Next.js 14 + TypeScript + Tailwind + shadcn/ui
+- **Wallet:** RainbowKit + wagmi (MiniPay-compatible)
+- **Monorepo:** Turborepo + PNPM workspaces
 
-## Available Scripts
+## Structure
 
-- `pnpm dev` - Start development servers
-- `pnpm build` - Build all packages and apps
-- `pnpm lint` - Lint all packages and apps
-- `pnpm type-check` - Run TypeScript type checking
+```
+splitpay/
+├── apps/
+│   ├── contracts/    Hardhat project (SplitPay.sol + tests + deploy)
+│   └── web/          Next.js MiniApp frontend
+├── package.json      Root workspace
+└── turbo.json        Turborepo pipeline
+```
 
-### Smart Contract Scripts
+## Local development
 
-- `pnpm contracts:compile` - Compile smart contracts
-- `pnpm contracts:test` - Run smart contract tests
-- `pnpm contracts:deploy` - Deploy contracts to local network
-- `pnpm contracts:deploy:celo-sepolia` - Deploy to Celo Sepolia Testnet
-- `pnpm contracts:deploy:celo` - Deploy to Celo Mainnet
+```bash
+pnpm install
+pnpm dev            # starts Next.js dev server on :3000
+pnpm contracts:test # runs Hardhat tests
+```
 
-## Tech Stack
+## Deployment
 
-- **Framework**: Next.js 14 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **UI Components**: shadcn/ui
-- **Smart Contracts**: Hardhat with Viem
-- **Monorepo**: Turborepo
-- **Package Manager**: PNPM
+Testnet:
 
-## Learn More
+```bash
+pnpm contracts:deploy:celo-sepolia
+```
 
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Celo Documentation](https://docs.celo.org/)
-- [Turborepo Documentation](https://turbo.build/repo/docs)
-- [shadcn/ui Documentation](https://ui.shadcn.com/)
+Mainnet:
+
+```bash
+pnpm contracts:deploy:celo
+```
+
+## Why
+
+Built as an entry for [Celo Proof of Ship](https://talent.app/~/earn/celo-proof-of-ship) — Celo's monthly builder program. Group expense splitting is a real daily use-case that fits MiniPay perfectly (peer-to-peer stablecoin transfers between people who already know each other).
