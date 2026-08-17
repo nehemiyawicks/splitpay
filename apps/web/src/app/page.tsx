@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteContract, useChainId } from "wagmi";
+import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteContract, useChainId, useSwitchChain } from "wagmi";
+import { celoSepolia } from "wagmi/chains";
 import { formatUnits, isAddress, parseUnits, decodeEventLog, type Address } from "viem";
 import {
   SPLITPAY_ABI,
@@ -14,6 +15,8 @@ import {
   saveGroupId,
 } from "@/lib/splitpay";
 import { truncateAddress } from "@/lib/app-utils";
+
+const TARGET_CHAIN_ID = celoSepolia.id;
 
 export default function Home() {
   const { address, isConnected } = useAccount();
@@ -44,12 +47,16 @@ export default function Home() {
 }
 
 function SplitPayApp({ me }: { me: Address }) {
+  const chainId = useChainId();
+  const { switchChain } = useSwitchChain();
   const [groupIds, setGroupIds] = useState<`0x${string}`[]>([]);
   const [selected, setSelected] = useState<`0x${string}` | null>(null);
 
   useEffect(() => {
     setGroupIds(loadGroupIds());
   }, []);
+
+  const wrongChain = chainId !== TARGET_CHAIN_ID;
 
   const handleGroupCreated = (groupId: `0x${string}`) => {
     saveGroupId(groupId);
@@ -63,6 +70,20 @@ function SplitPayApp({ me }: { me: Address }) {
         <h1 className="text-3xl font-bold">splitpay</h1>
         <p className="text-sm text-muted-foreground">Signed in as {truncateAddress(me)}</p>
       </header>
+
+      {wrongChain && (
+        <div className="border border-yellow-500 rounded p-3 bg-yellow-500/10">
+          <p className="text-sm mb-2">
+            Your wallet is on chain {chainId}, but splitpay targets Celo Sepolia ({TARGET_CHAIN_ID}).
+          </p>
+          <button
+            onClick={() => switchChain({ chainId: TARGET_CHAIN_ID })}
+            className="px-3 py-1 bg-yellow-500 text-black rounded text-sm"
+          >
+            Switch to Celo Sepolia
+          </button>
+        </div>
+      )}
 
       <CreateGroup me={me} onCreated={handleGroupCreated} />
 
@@ -141,6 +162,7 @@ function CreateGroup({ me, onCreated }: { me: Address; onCreated: (id: `0x${stri
     }
     try {
       const hash = await writeContractAsync({
+        chainId: TARGET_CHAIN_ID,
         address: SPLITPAY_ADDRESS as Address,
         abi: SPLITPAY_ABI,
         functionName: "createGroup",
@@ -182,6 +204,7 @@ function GroupDetail({ groupId, me }: { groupId: `0x${string}`; me: Address }) {
     abi: SPLITPAY_ABI,
     functionName: "getMembers",
     args: [groupId],
+    chainId: TARGET_CHAIN_ID,
   });
 
   const { data: myBalance } = useReadContract({
@@ -189,6 +212,7 @@ function GroupDetail({ groupId, me }: { groupId: `0x${string}`; me: Address }) {
     abi: SPLITPAY_ABI,
     functionName: "getBalance",
     args: [groupId, me],
+    chainId: TARGET_CHAIN_ID,
   });
 
   return (
@@ -257,6 +281,7 @@ function AddExpense({
       const shares = debtors.map(() => share);
       shares[0] += amount - share * BigInt(debtors.length);
       await writeContractAsync({
+        chainId: TARGET_CHAIN_ID,
         address: SPLITPAY_ADDRESS as Address,
         abi: SPLITPAY_ABI,
         functionName: "addExpense",
@@ -356,6 +381,7 @@ function Settle({
     try {
       setStep("approving");
       await writeContractAsync({
+        chainId: TARGET_CHAIN_ID,
         address: token,
         abi: ERC20_ABI,
         functionName: "approve",
@@ -363,6 +389,7 @@ function Settle({
       });
       setStep("settling");
       await writeContractAsync({
+        chainId: TARGET_CHAIN_ID,
         address: SPLITPAY_ADDRESS as Address,
         abi: SPLITPAY_ABI,
         functionName: "settle",
