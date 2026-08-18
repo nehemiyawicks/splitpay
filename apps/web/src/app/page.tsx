@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteContract, useChainId, useSwitchChain } from "wagmi";
-import { celoSepolia } from "wagmi/chains";
+import { celo } from "wagmi/chains";
 import { formatUnits, isAddress, parseUnits, decodeEventLog, type Address } from "viem";
 import {
   SPLITPAY_ABI,
@@ -16,7 +16,7 @@ import {
 } from "@/lib/splitpay";
 import { truncateAddress } from "@/lib/app-utils";
 
-const TARGET_CHAIN_ID = celoSepolia.id;
+const TARGET_CHAIN_ID = celo.id;
 
 export default function Home() {
   const { address, isConnected } = useAccount();
@@ -74,13 +74,13 @@ function SplitPayApp({ me }: { me: Address }) {
       {wrongChain && (
         <div className="border border-yellow-500 rounded p-3 bg-yellow-500/10">
           <p className="text-sm mb-2">
-            Your wallet is on chain {chainId}, but splitpay targets Celo Sepolia ({TARGET_CHAIN_ID}).
+            Your wallet is on chain {chainId}, but splitpay targets Celo ({TARGET_CHAIN_ID}).
           </p>
           <button
             onClick={() => switchChain({ chainId: TARGET_CHAIN_ID })}
             className="px-3 py-1 bg-yellow-500 text-black rounded text-sm"
           >
-            Switch to Celo Sepolia
+            Switch to Celo
           </button>
         </div>
       )}
