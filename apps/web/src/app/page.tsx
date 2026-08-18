@@ -15,7 +15,6 @@ import {
   saveGroupId,
 } from "@/lib/splitpay";
 import { truncateAddress } from "@/lib/app-utils";
-import { divviSuffix, reportDivvi } from "@/lib/divvi";
 
 const TARGET_CHAIN_ID = celo.id;
 
@@ -168,10 +167,8 @@ function CreateGroup({ me, onCreated }: { me: Address; onCreated: (id: `0x${stri
         abi: SPLITPAY_ABI,
         functionName: "createGroup",
         args: [members as Address[]],
-        dataSuffix: divviSuffix(me),
       });
       setTxHash(hash);
-      reportDivvi(hash, TARGET_CHAIN_ID);
     } catch (err: any) {
       setError(err?.shortMessage ?? err?.message ?? "Transaction failed");
     }
@@ -283,15 +280,13 @@ function AddExpense({
       const share = amount / BigInt(debtors.length);
       const shares = debtors.map(() => share);
       shares[0] += amount - share * BigInt(debtors.length);
-      const hash = await writeContractAsync({
+      await writeContractAsync({
         chainId: TARGET_CHAIN_ID,
         address: SPLITPAY_ADDRESS as Address,
         abi: SPLITPAY_ABI,
         functionName: "addExpense",
         args: [groupId, amount, debtors, shares, memo],
-        dataSuffix: divviSuffix(me),
       });
-      reportDivvi(hash, TARGET_CHAIN_ID);
       setTotal("");
       setMemo("");
     } catch (err: any) {
@@ -385,25 +380,21 @@ function Settle({
     const value = parseUnits(amount, 6);
     try {
       setStep("approving");
-      const approveHash = await writeContractAsync({
+      await writeContractAsync({
         chainId: TARGET_CHAIN_ID,
         address: token,
         abi: ERC20_ABI,
         functionName: "approve",
         args: [SPLITPAY_ADDRESS as Address, value],
-        dataSuffix: divviSuffix(me),
       });
-      reportDivvi(approveHash, TARGET_CHAIN_ID);
       setStep("settling");
-      const settleHash = await writeContractAsync({
+      await writeContractAsync({
         chainId: TARGET_CHAIN_ID,
         address: SPLITPAY_ADDRESS as Address,
         abi: SPLITPAY_ABI,
         functionName: "settle",
         args: [groupId, to as Address, token, value],
-        dataSuffix: divviSuffix(me),
       });
-      reportDivvi(settleHash, TARGET_CHAIN_ID);
       setAmount("");
       setTo("");
     } catch (err: any) {
