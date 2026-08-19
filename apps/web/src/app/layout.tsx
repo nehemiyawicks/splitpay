@@ -4,6 +4,7 @@ import './globals.css';
 
 import { Navbar } from '@/components/navbar';
 import { WalletProvider } from "@/components/wallet-provider"
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -33,6 +34,7 @@ export default function RootLayout({
             </main>
           </WalletProvider>
         </div>
+        <Analytics />
       </body>
     </html>
   );
